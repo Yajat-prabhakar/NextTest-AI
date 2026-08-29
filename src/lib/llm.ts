@@ -32,13 +32,12 @@ async function ollamaChat(opts: {
   responseFormat?: { type: "json_object" };
 }): Promise<string> {
   const url = `${opts.baseUrl}/v1/chat/completions`;
-  // Give vision model extra time (cold start can be >60s via nginx)
-  const timeoutMs = opts.model.includes("vl") ? 120000 : 30000;
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), timeoutMs);
-  let res: Response;
-  try {
-    res = await fetch(url, {
+  // No client-side timeout — wait indefinitely until Ollama responds
+  // Handles nginx 504 (gateway timeout from cold start) with retries
+  const maxRetries = 3;
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,20 +50,26 @@ async function ollamaChat(opts: {
         max_tokens: opts.maxTokens ?? 600,
         ...(opts.responseFormat ? { response_format: opts.responseFormat } : {}),
       }),
-      signal: controller.signal,
     });
-  } finally {
-    clearTimeout(t);
-  }
 
-  if (!res.ok) {
+    if (res.ok) {
+      const json = (await res.json()) as OllamaChatResponse;
+      const content = json.choices?.[0]?.message?.content;
+      if (!content) throw new Error("Empty response from Ollama");
+      return content;
+    }
+
     const body = await res.text().catch(() => "");
-    throw new Error(`Ollama ${res.status}: ${body.slice(0, 800)}`);
+    lastError = new Error(`Ollama ${res.status}: ${body.slice(0, 800)}`);
+    // Retry on gateway/timeout errors (nginx 504 on cold start)
+    const retryable = res.status === 502 || res.status === 503 || res.status === 504;
+    if (retryable && attempt < maxRetries) {
+      await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+      continue;
+    }
+    throw lastError;
   }
-  const json = (await res.json()) as OllamaChatResponse;
-  const content = json.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Empty response from Ollama");
-  return content;
+  throw lastError ?? new Error("Ollama request failed");
 }
 
 // ── Vision classification ────────────────────────────────────────
