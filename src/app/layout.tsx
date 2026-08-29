@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "Validation prototype: photograph a sample, get a zero-shot vision LLM first impression, then narrow it down with Bayesian experiments. Requires network access to Ollama.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
