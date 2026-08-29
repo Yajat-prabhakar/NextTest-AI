@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Bayes unit test
+        run: npx tsx src/lib/__tests__/bayes.test.ts
+
+      - name: Build
+        run: npm run build
+        env:
+          # Build does not need live Ollama — use dummy so GetServerConfig has a value in SSR
+          OLLAMA_BASE_URL: http://localhost:11434
+          OLLAMA_API_KEY: dummy-ci
+
+      # Optional: live vision smoke (only when secrets are present, never on fork PRs)
+      - name: Live vision smoke (optional)
+        if: ${{ env.OLLAMA_API_KEY != '' && env.OLLAMA_BASE_URL != 'http://localhost:11434' }}
+        env:
+          OLLAMA_BASE_URL: ${{ secrets.OLLAMA_BASE_URL }}
+          OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+        run: |
+          if [ -f "Copper-21991.png" ]; then
+            python scripts/vision_test.py --image Copper-21991.png --timeout 90 || echo "::warning::Vision smoke failed — likely nginx 504 / model cold"
+          else
+            echo "No sample image — skipping vision smoke"
+          fi
