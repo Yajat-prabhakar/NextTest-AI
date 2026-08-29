@@ -12,6 +12,7 @@ import {
   getTopCandidate,
 } from "../bayes";
 import { ELEMENT_IDS } from "../constants";
+import type { Distribution } from "../bayes";
 
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(`ASSERT FAILED: ${msg}`);
@@ -58,7 +59,7 @@ assert(allDone === null, "all done => null");
 
 // threshold
 assert(!hasReachedThreshold(uniform, 0.85), "uniform not over threshold");
-const confident = { ...uniform, iron: 0.9, copper: 0.02, zinc: 0.02, aluminum: 0.02, sulfur: 0.02, graphite: 0.01, unknown: 0.01 } as any;
+const confident = { ...uniform, iron: 0.9, copper: 0.02, zinc: 0.02, aluminum: 0.02, sulfur: 0.02, graphite: 0.01, unknown: 0.01 } as Distribution;
 assert(hasReachedThreshold(confident, 0.85), "confident should be over");
 
 assert(entropy(uniform) > entropy(confident), "uniform higher entropy");

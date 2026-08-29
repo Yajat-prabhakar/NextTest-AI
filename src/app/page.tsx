@@ -8,7 +8,6 @@ import { EvidenceTrail } from "@/components/EvidenceTrail";
 import { EXPERIMENTS, getExperiment } from "@/lib/experiments";
 import {
   bayesianUpdate,
-  createUniformDistribution,
   getTopCandidate,
   hasReachedThreshold,
   selectNextExperiment,
@@ -54,10 +53,6 @@ export default function Home() {
   const top = useMemo(
     () => (distribution ? getTopCandidate(distribution) : null),
     [distribution]
-  );
-  const thresholdMet = useMemo(
-    () => (distribution ? hasReachedThreshold(distribution, threshold) : false),
-    [distribution, threshold]
   );
   const unknownWins = top?.id === "unknown" && finished;
 

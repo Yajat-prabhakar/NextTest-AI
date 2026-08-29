@@ -4,7 +4,7 @@
  * - Text LLM: qwen2.5:3b  — kid-friendly explanations, never touches probability math
  */
 import type { Distribution } from "./bayes";
-import { ELEMENT_IDS, type ElementId } from "./constants";
+import { ELEMENT_IDS } from "./constants";
 import { normalizeDistribution } from "./bayes";
 
 interface OllamaChatMessage {

@@ -1,7 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
 import {
-  ELEMENT_IDS,
   ELEMENT_LABELS,
   ELEMENT_COLORS,
   type ElementId,

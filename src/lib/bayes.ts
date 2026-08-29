@@ -36,7 +36,7 @@ export function createDistributionFromArray(
       `Expected ${ELEMENT_IDS.length} values, got ${values.length}`
     );
   const d = {} as Distribution;
-  let sum = values.reduce((a, b) => a + b, 0);
+  const sum = values.reduce((a, b) => a + b, 0);
   if (sum < EPS) throw new Error("Distribution sums to ~0");
   for (let i = 0; i < ELEMENT_IDS.length; i++) {
     d[ELEMENT_IDS[i]] = values[i] / sum;
