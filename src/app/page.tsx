@@ -8,31 +8,24 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col">
       <StitchHeader />
 
-      {/* Hero - from Welcome to the Lab */}
-      <main className="flex-grow w-full max-w-[1280px] mx-auto px-4 md:px-10 py-8 flex flex-col gap-16">
-        <section className="grid md:grid-cols-2 gap-8 items-center py-8">
-          <div className="flex flex-col gap-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-secondary-container border-2 border-on-surface rounded-full -rotate-1 w-fit">
-              <span className="material-symbols-outlined text-secondary" style={{ fontSize: 20 }}>
-                star
-              </span>
-              <span className="font-bold text-sm" style={{ fontFamily: "var(--font-nunito)" }}>
-                Adaptive Sequence — Not a Fixed Script
-              </span>
-            </div>
+      <main className="flex-grow w-full max-w-[1280px] mx-auto px-4 md:px-10 py-12 flex flex-col gap-20">
+
+        {/* ── Hero ─────────────────────────────────────────────────────── */}
+        <section className="grid md:grid-cols-2 gap-10 items-center">
+          <div className="flex flex-col gap-5">
             <h1
-              className="font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-tight -rotate-1"
+              className="font-bold text-[42px] md:text-[60px] leading-[1.02] tracking-tight -rotate-1"
               style={{ fontFamily: "var(--font-quicksand)" }}
             >
-              Most kits give every kid the <span className="text-primary sketchy-underline">same steps.</span> Ours doesn&apos;t.
+              Most kits give every kid the{" "}
+              <span className="text-primary sketchy-underline">same steps.</span>
+              <br />Ours doesn&apos;t.
             </h1>
             <p className="text-lg text-on-surface-variant leading-relaxed" style={{ fontFamily: "var(--font-nunito)" }}>
-              <span className="font-bold text-on-surface">We built a kit where the AI decides what you try next — based on what it&apos;s still unsure about — and explains why.</span> You learn to investigate, not just follow instructions.
+              The AI decides what to try next based on what it&apos;s still unsure about — and explains why. You learn to{" "}
+              <span className="font-bold text-on-surface">investigate</span>, not just follow instructions.
             </p>
-            <p className="text-sm text-on-surface-variant leading-relaxed border-l-4 border-primary pl-3" style={{ fontFamily: "var(--font-nunito)" }}>
-              Photograph your mystery sample → see a <em>real</em> closed-set confidence split across our 6 safe reference elements + Unknown → AI picks the most informative next test from a pre-approved, safety-rated menu → you report the result (multiple-choice only) → confidence updates by Bayes. No heat, no flame, no combining unknowns.
-            </p>
-            <div className="flex flex-wrap gap-3 mt-2">
+            <div className="flex flex-wrap gap-3 mt-1">
               <Link
                 href="/lab"
                 className="px-8 py-3 bg-primary text-on-primary font-bold text-lg border-[3px] border-on-surface rounded-xl ink-shadow hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0px_0px_#1a1c1c] active:translate-y-0 active:translate-x-0 transition-all inline-flex items-center gap-2"
@@ -43,39 +36,37 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="/help"
-                className="px-6 py-3 bg-white border-2 border-on-surface rounded-xl ink-shadow-sm font-bold hover:-translate-y-0.5 transition-transform inline-flex items-center gap-2"
+                className="px-6 py-3 bg-white border-2 border-on-surface rounded-xl font-bold hover:-translate-y-0.5 transition-transform inline-flex items-center gap-2 text-on-surface-variant"
                 style={{ fontFamily: "var(--font-nunito)" }}
               >
-                <span className="material-symbols-outlined">help</span> How it works
+                <span className="material-symbols-outlined text-[20px]">verified_user</span> Safety Guide
               </Link>
             </div>
-            <div className="flex items-center gap-2 text-xs text-on-surface-variant mt-2" style={{ fontFamily: "var(--font-nunito)" }}>
-              <span className="w-2 h-2 bg-tertiary rounded-full animate-pulse" /> Validation prototype — 6 safe elements + Unknown · requires network access to Ollama
-            </div>
-            <p className="text-[11px] text-on-surface-variant leading-relaxed bg-white border border-dashed border-outline-variant rounded-lg px-3 py-2" style={{ fontFamily: "var(--font-nunito)" }}>
-              <span className="font-bold">Honest scope:</span> For this prototype we distinguish among 6 safe, non-toxic, non-reactive reference elements (iron, copper, zinc, aluminum, sulfur, graphite) + Unknown. Samples contain no explosives or reactive substances. Experiments are physical/observational only. Same evidence-driven loop generalizes to more samples later.
+            <p className="text-xs text-on-surface-variant" style={{ fontFamily: "var(--font-nunito)" }}>
+              Prototype · 6 safe, non-toxic reference elements + Unknown · no heat, flame, or combining unknowns
             </p>
           </div>
 
+          {/* Animated confidence preview */}
           <div className="relative">
             <div className="sketch-border ink-shadow bg-surface-container-lowest p-2 rotate-1">
-              <div className="aspect-[4/3] bg-surface-container-high rounded-lg overflow-hidden relative">
+              <div className="aspect-[4/3] rounded-lg overflow-hidden relative">
                 <AnimatedPreview />
-                <div className="absolute -top-3 -right-3 px-3 py-1 bg-secondary border-2 border-on-surface rounded-full font-bold text-xs -rotate-3 z-10">
-                  6 safe elements + Unknown
-                </div>
               </div>
             </div>
-            <div className="absolute -bottom-4 -left-4 px-4 py-2 bg-tertiary-container border-2 border-on-surface rounded-lg -rotate-2 text-sm font-bold ink-shadow-sm hidden md:block">
+            <div className="absolute -bottom-4 -left-4 px-4 py-2 bg-secondary-container border-2 border-on-surface rounded-lg -rotate-2 text-sm font-bold ink-shadow-sm hidden md:block" style={{ fontFamily: "var(--font-quicksand)" }}>
               Bayesian · Zero-shot vision
+            </div>
+            <div className="absolute -top-3 -right-3 px-3 py-1 bg-primary text-on-primary border-2 border-on-surface rounded-full font-bold text-xs -rotate-3 z-10">
+              6 elements + Unknown
             </div>
           </div>
         </section>
 
-        {/* How it Works */}
+        {/* ── How it Works ─────────────────────────────────────────────── */}
         <section>
           <h2
-            className="text-center font-bold text-[32px] md:text-[40px] mb-8 -rotate-1"
+            className="font-bold text-[30px] md:text-[38px] mb-8 -rotate-1"
             style={{ fontFamily: "var(--font-quicksand)" }}
           >
             How it Works
@@ -86,35 +77,42 @@ export default function LandingPage() {
                 n: "1",
                 icon: "photo_camera",
                 title: "Photo → real confidence",
-                desc: "Snap a pic on a plain background. Zero-shot vision (qwen2.5vl:3b) returns a genuine 7-way split — honest about uncertainty, with an Unknown bucket for blurry/ambiguous shots.",
+                desc: "Snap a picture of the mystery sample. The AI gives a genuine 7-way probability split across all 6 elements + Unknown — honest about what it can't tell from a photo alone.",
                 color: "bg-primary text-on-primary",
               },
               {
                 n: "2",
                 icon: "science",
-                title: "AI picks what it's unsure about",
-                desc: "If below threshold, we choose the next test by expected information gain — deterministic Bayesian reasoning. Text AI only explains why (e.g. “can't tell copper from iron yet — a magnet will settle it”).",
+                title: "AI picks what's still uncertain",
+                desc: "If confidence is below the threshold, the AI selects the single experiment that would give it the most information — and tells you exactly why it needs that test.",
                 color: "bg-secondary text-on-secondary",
               },
               {
                 n: "3",
                 icon: "search_check",
-                title: "You test, we update",
-                desc: "Perform the magnet, float, vinegar, or conductivity test alone or with adult help (medium tier). Report via multiple-choice only — confidence updates by Naive Bayes until confident or Unknown wins.",
+                title: "You test, confidence updates",
+                desc: "Perform the magnet, float, vinegar, or conductivity test and report via multiple-choice. Confidence updates by Bayes — repeat until the answer is clear.",
                 color: "bg-tertiary-container text-on-tertiary-container",
               },
             ].map((s) => (
-              <div key={s.n} className="sketch-border bg-white p-6 flex flex-col gap-3 ink-shadow-sm hover:-translate-y-1 transition-transform">
+              <div
+                key={s.n}
+                className="sketch-border bg-white p-6 flex flex-col gap-3 ink-shadow-sm hover:-translate-y-1 transition-transform"
+              >
                 <div className="flex items-center gap-3">
-                  <span className={`w-10 h-10 rounded-full border-2 border-on-surface flex items-center justify-center font-bold ${s.color}`}>{s.n}</span>
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: 32 }}>
+                  <span
+                    className={`w-10 h-10 rounded-full border-2 border-on-surface flex items-center justify-center font-bold text-base ${s.color}`}
+                  >
+                    {s.n}
+                  </span>
+                  <span className="material-symbols-outlined text-primary" style={{ fontSize: 28 }}>
                     {s.icon}
                   </span>
                 </div>
                 <h3 className="font-bold text-lg" style={{ fontFamily: "var(--font-quicksand)" }}>
                   {s.title}
                 </h3>
-                <p className="text-sm text-on-surface-variant" style={{ fontFamily: "var(--font-nunito)" }}>
+                <p className="text-sm text-on-surface-variant leading-relaxed" style={{ fontFamily: "var(--font-nunito)" }}>
                   {s.desc}
                 </p>
               </div>
@@ -122,41 +120,26 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Safety + regulatory compliance — required for kids chemistry demo */}
-        <section className="sketch-border bg-amber-50 border-amber-200 p-6 flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-amber-700" style={{ fontSize: 28 }}>
-              verified_user
-            </span>
-            <h3 className="font-bold text-amber-900" style={{ fontFamily: "var(--font-quicksand)" }}>
-              Safety &amp; Regulatory Compliance
+        {/* ── Why it's different ───────────────────────────────────────── */}
+        <section className="grid md:grid-cols-2 gap-8 items-start">
+          <div className="sketch-border bg-white p-6 ink-shadow-sm rotate-[0.4deg]">
+            <h3 className="font-bold text-xl mb-3" style={{ fontFamily: "var(--font-quicksand)" }}>
+              The adaptive loop — not a fixed script
             </h3>
+            <p className="text-sm text-on-surface-variant leading-relaxed" style={{ fontFamily: "var(--font-nunito)" }}>
+              Every other science kit sends every kid through the same checklist. Ours routes differently per kid, per sample — if you get an obvious copper photo, you might only need one experiment. If it&apos;s ambiguous, you&apos;ll run two or three. The AI&apos;s reasoning is transparent at every step.
+            </p>
           </div>
-          <ul className="list-disc pl-5 text-sm text-amber-900 space-y-1" style={{ fontFamily: "var(--font-nunito)" }}>
-            <li><span className="font-bold">Samples are safe, non-toxic, non-reactive reference elements only</span> — no explosives, no reactive substances, no heat/flame, no combining unknowns.</li>
-            <li>Experiments are physical/observational only: magnetism, density/float, mild vinegar indicator, low-voltage (≤3 V) conductivity — aligned with kids&apos; chemistry kit expectations (EN 71-4 style safety).</li>
-            <li><span className="font-bold">AI never authors experiments.</span> It only selects an ID from a human-vetted, pre-written menu; each entry has fixed instructions, fixed warnings, and a safety tier. Open generation here is blocked by design.</li>
-            <li>Results are <span className="font-bold">multiple-choice only</span> — no free-text/photo interpretation in the loop, keeping confidence honest.</li>
-            <li>Medium-tier Vinegar test: <span className="font-bold">adult supervision recommended</span> — wear safety glasses, rinse if splashed, do not mix with other chemicals.</li>
-          </ul>
-          <p className="text-xs text-amber-800 mt-1" style={{ fontFamily: "var(--font-nunito)" }}>
-            This is a validation prototype testing whether a zero-shot vision LLM (<code className="bg-white px-1 border">qwen2.5vl:3b</code>) is good enough to seed a deterministic Bayesian loop — or whether a trained closed-set classifier is needed later. The loop itself is offline-capable and never lets the AI invent steps.
-          </p>
+          <div className="sketch-border bg-white p-6 ink-shadow-sm -rotate-[0.4deg]">
+            <h3 className="font-bold text-xl mb-3" style={{ fontFamily: "var(--font-quicksand)" }}>
+              Honest confidence scores
+            </h3>
+            <p className="text-sm text-on-surface-variant leading-relaxed" style={{ fontFamily: "var(--font-nunito)" }}>
+              The candidate set is small and closed — 6 known elements you own. That means the percentages are real Bayesian posteriors, not the fabricated-looking outputs that generic photo-to-material tools produce. Unknown is always a valid answer if nothing fits.
+            </p>
+          </div>
         </section>
 
-        {/* Demo loop preview — for judges */}
-        <section className="sketch-border bg-white p-6 flex flex-col gap-3">
-          <h3 className="font-bold" style={{ fontFamily: "var(--font-quicksand)" }}>
-            Live demo loop (what you&apos;ll see on stage)
-          </h3>
-          <ol className="list-decimal pl-5 text-sm text-on-surface-variant space-y-1" style={{ fontFamily: "var(--font-nunito)" }}>
-            <li>Photograph a sample → show initial real confidence split.</li>
-            <li>AI explains why it&apos;s still uncertain and requests a specific test.</li>
-            <li>Perform the test, report the multiple-choice result.</li>
-            <li>Show confidence updating in real time.</li>
-            <li>Reach a conclusion + show the evidence trail — <em>here&apos;s why we asked for each test.</em></li>
-          </ol>
-        </section>
       </main>
 
       <StitchFooter />

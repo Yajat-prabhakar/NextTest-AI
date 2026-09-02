@@ -4,33 +4,32 @@ import { useEffect, useState } from "react";
 import { ConfidenceTubes } from "./ConfidenceTubes";
 import type { Distribution } from "@/lib/bayes";
 
-const dist1: Distribution = { iron: 0.6, copper: 0.2, zinc: 0.1, aluminum: 0.05, sulfur: 0.0, graphite: 0.0, unknown: 0.05 };
-const dist2: Distribution = { iron: 0.3, copper: 0.6, zinc: 0.05, aluminum: 0.0, sulfur: 0.0, graphite: 0.05, unknown: 0.0 };
-const dist3: Distribution = { iron: 0.05, copper: 0.9, zinc: 0.05, aluminum: 0.0, sulfur: 0.0, graphite: 0.0, unknown: 0.0 };
-
-const seq = [dist1, dist2, dist3, dist2];
+const seq: Distribution[] = [
+  { iron: 0.55, copper: 0.22, zinc: 0.08, aluminum: 0.07, sulfur: 0.02, graphite: 0.02, unknown: 0.04 },
+  { iron: 0.22, copper: 0.58, zinc: 0.08, aluminum: 0.05, sulfur: 0.02, graphite: 0.02, unknown: 0.03 },
+  { iron: 0.05, copper: 0.85, zinc: 0.04, aluminum: 0.03, sulfur: 0.01, graphite: 0.01, unknown: 0.01 },
+];
 
 export function AnimatedPreview() {
-  const [dist, setDist] = useState<Distribution>(dist1);
+  const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    let i = 0;
-    const t = setInterval(() => {
-      i = (i + 1) % seq.length;
-      setDist(seq[i]);
-    }, 2000);
+    const t = setInterval(() => setIdx((i) => (i + 1) % seq.length), 2200);
     return () => clearInterval(t);
   }, []);
 
   return (
-    <div className="absolute inset-0 p-4 bg-white rounded-lg flex flex-col justify-center">
-      <div className="text-center mb-2">
-        <span className="font-bold text-xs" style={{ fontFamily: "var(--font-quicksand)" }}>
-          LIVE CONFIDENCE
+    <div className="absolute inset-0 bg-white rounded-lg flex flex-col p-5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="font-bold text-sm text-primary" style={{ fontFamily: "var(--font-quicksand)" }}>
+          Live Confidence
+        </span>
+        <span className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/30 rounded-full text-xs font-bold animate-pulse">
+          Updating…
         </span>
       </div>
-      <div className="scale-75 origin-center">
-        <ConfidenceTubes distribution={dist} />
+      <div className="flex-1 flex items-end">
+        <ConfidenceTubes distribution={seq[idx]} compact />
       </div>
     </div>
   );

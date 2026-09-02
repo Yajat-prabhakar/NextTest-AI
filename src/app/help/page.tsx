@@ -2,74 +2,137 @@ import { StitchHeader } from "@/components/StitchHeader";
 import { StitchFooter } from "@/components/StitchFooter";
 import Link from "next/link";
 
-export default function HowItWorksPage() {
+const SAFETY_TIERS = [
+  {
+    tier: "LOW",
+    color: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    experiments: [
+      { name: "Magnet Test", note: "Keep magnet away from phones, cards, and medical devices." },
+      { name: "Water Float / Density", note: "Do over a tray. Dry sample after. Do not drink the water." },
+      { name: "Conductivity Check", note: "Low-voltage battery circuit only (≤3 V). Do not use mains power." },
+    ],
+  },
+  {
+    tier: "MEDIUM",
+    color: "bg-amber-100 text-amber-800 border-amber-300",
+    experiments: [
+      { name: "Vinegar Reaction", note: "Adult supervision required. Wear safety glasses. Rinse if splashed. Do not mix with other chemicals." },
+    ],
+  },
+];
+
+export default function HelpPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <StitchHeader />
-      <main className="flex-grow max-w-[1280px] mx-auto px-4 md:px-10 py-8 flex flex-col gap-8 w-full">
-        <h1 className="font-bold text-[36px] md:text-[48px] -rotate-1 text-primary" style={{ fontFamily: "var(--font-quicksand)" }}>
-          How It Works
-        </h1>
-        <p className="text-lg text-on-surface-variant -mt-4 max-w-3xl" style={{ fontFamily: "var(--font-nunito)" }}>
-          Most science kits give every kid the same steps in the same order. <span className="font-bold text-on-surface">We built a kit where the AI decides what you try next, based on what it&apos;s still unsure about — and explains why.</span> The student learns to investigate, not just to follow instructions.
-        </p>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { step: "1", title: "Photo → real confidence", icon: "photo_camera", desc: "Place the mystery material on a plain background in good light. The vision LLM (qwen2.5vl:3b) gives a rough first impression — not a guaranteed classifier — as a genuine 7-way distribution across iron, copper, zinc, aluminum, sulfur, graphite, unknown. Honest about blurry/ambiguous shots." },
-            { step: "2", title: "AI picks what it's unsure about", icon: "science", desc: "If below threshold (default 85%, adjustable), we pick the next experiment by expected information gain — deterministic, hand-authored likelihoods P(result|element). The text LLM only explains why in kid-friendly language — it never does math or authors steps." },
-            { step: "3", title: "You test, we update", icon: "biotech", desc: "Perform the magnet, float, vinegar, or conductivity test — alone or with adult help for anything above the lowest safety tier — and report via multiple-choice only. We update by Naive Bayes: posterior ∝ prior × likelihood, then re-rank. Loop until confident or Unknown wins." },
-          ].map((c) => (
-            <div key={c.step} className="sketch-border bg-white p-6 ink-shadow-sm">
-              <div className="w-12 h-12 rounded-full bg-primary text-on-primary border-2 border-on-surface flex items-center justify-center font-bold text-lg -rotate-3">
-                {c.step}
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">{c.icon}</span>
-                <h3 className="font-bold text-lg" style={{ fontFamily: "var(--font-quicksand)" }}>
-                  {c.title}
-                </h3>
-              </div>
-              <p className="text-sm text-on-surface-variant mt-2" style={{ fontFamily: "var(--font-nunito)" }}>
-                {c.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-        <div className="sketch-border bg-secondary-container p-6">
-          <h3 className="font-bold" style={{ fontFamily: "var(--font-quicksand)" }}>
-            Experiment menu — fixed, pre-approved, safety-rated (AI selects ID only)
-          </h3>
-          <ul className="list-disc pl-5 mt-2 text-sm space-y-1" style={{ fontFamily: "var(--font-nunito)" }}>
-            <li><span className="font-bold">Magnet Test</span> — <span className="px-1.5 py-0.5 bg-emerald-100 border rounded text-xs font-bold">LOW</span> — is it attracted? Keep magnet away from phones/cards/medical devices.</li>
-            <li><span className="font-bold">Water Float / Density</span> — <span className="px-1.5 py-0.5 bg-emerald-100 border rounded text-xs font-bold">LOW</span> — sinks vs floats. Do over a tray, dry sample after, do not drink water.</li>
-            <li><span className="font-bold">Vinegar Reaction</span> — <span className="px-1.5 py-0.5 bg-amber-100 border rounded text-xs font-bold">MEDIUM · Adult supervision recommended</span> — vigorous / slight / no fizz. Wear safety glasses, rinse if splashed, do not mix with other chemicals.</li>
-            <li><span className="font-bold">Conductivity</span> — <span className="px-1.5 py-0.5 bg-emerald-100 border rounded text-xs font-bold">LOW</span> — LED on/off. Low-voltage battery circuit only (≤3 V), do not use mains.</li>
-          </ul>
-          <p className="text-xs mt-3 font-bold">Two architectural rules that must not be broken:</p>
-          <ol className="list-decimal pl-5 text-xs mt-1 space-y-1 text-on-surface-variant" style={{ fontFamily: "var(--font-nunito)" }}>
-            <li><span className="font-bold">AI never generates a new experiment or safety instruction on the fly.</span> It only picks from this human-vetted, pre-written menu, each entry tagged with a safety tier and fixed warning text. Hallucination here could cause real harm.</li>
-            <li><span className="font-bold">AI never interprets free-form results.</span> Reporting is structured/multiple-choice only — keeping confidence honest instead of reintroducing the open-world guessing problem.</li>
-          </ol>
-        </div>
+      <main className="flex-grow max-w-[800px] mx-auto px-4 md:px-10 py-10 w-full flex flex-col gap-10">
 
-        <div className="sketch-border bg-amber-50 border-amber-200 p-6 flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-amber-700" style={{ fontSize: 24 }}>verified_user</span>
-            <h3 className="font-bold text-amber-900" style={{ fontFamily: "var(--font-quicksand)" }}>Regulatory &amp; Safety Compliance</h3>
-          </div>
-          <ul className="list-disc pl-5 text-sm text-amber-900 space-y-1" style={{ fontFamily: "var(--font-nunito)" }}>
-            <li>Samples are <span className="font-bold">safe, non-toxic, non-reactive reference elements only</span> — no explosives, no reactive substances. No heat, flame, or combining unknowns. Physical/observational tests only (magnetism, density, mild vinegar indicator, conductivity).</li>
-            <li>Aligned with kids&apos; chemistry kit expectations (e.g. EN 71-4 style safety). Stopping threshold defaults to 85% (adjustable 60–95% in the Lab) — controls how many rounds a demo takes.</li>
-            <li>For medium-tier steps, the UI shows <span className="font-bold">Adult supervision recommended</span> and the child can do low-tier tests alone.</li>
-            <li>Confidence scores are <span className="font-bold">real and closed-set</span> — not fabricated percentages — because the candidate set is small and known in advance (Bayesian update with hand-estimated likelihoods P(result|element)).</li>
-          </ul>
-          <p className="text-xs text-amber-800" style={{ fontFamily: "var(--font-nunito)" }}>
-            Honest scope: For this prototype we support 6 reference elements + Unknown. The same evidence-driven loop generalizes to more samples later — we say the narrower, defensible claim rather than &quot;general element detection.&quot;
+        <div>
+          <h1
+            className="font-bold text-[36px] md:text-[48px] -rotate-1 text-primary"
+            style={{ fontFamily: "var(--font-quicksand)" }}
+          >
+            Safety Guide
+          </h1>
+          <p className="text-on-surface-variant mt-2 max-w-lg leading-relaxed" style={{ fontFamily: "var(--font-nunito)" }}>
+            All experiments in this kit are physical and observational only — no heat, flame, or combining unknowns. This page explains what each experiment involves and when adult supervision is needed.
           </p>
         </div>
-        <Link href="/lab" className="self-start px-6 py-3 bg-primary text-on-primary border-[3px] border-on-surface rounded-xl ink-shadow font-bold hover:-translate-y-1 transition-transform">
-          Start Investigation →
+
+        {/* Experiment Safety Tiers */}
+        {SAFETY_TIERS.map((tier) => (
+          <section key={tier.tier} className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <span className={`px-3 py-1 border-2 rounded-full text-sm font-bold ${tier.color}`}>
+                {tier.tier} SAFETY
+              </span>
+              {tier.tier === "LOW" && (
+                <span className="text-sm text-on-surface-variant" style={{ fontFamily: "var(--font-nunito)" }}>
+                  Children can perform these alone
+                </span>
+              )}
+              {tier.tier === "MEDIUM" && (
+                <span className="text-sm text-amber-700 font-bold" style={{ fontFamily: "var(--font-nunito)" }}>
+                  Adult supervision required
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col gap-3">
+              {tier.experiments.map((exp) => (
+                <div
+                  key={exp.name}
+                  className="sketch-border bg-white p-5 flex flex-col gap-1"
+                >
+                  <h3 className="font-bold" style={{ fontFamily: "var(--font-quicksand)" }}>
+                    {exp.name}
+                  </h3>
+                  <p className="text-sm text-on-surface-variant leading-relaxed" style={{ fontFamily: "var(--font-nunito)" }}>
+                    {exp.note}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        {/* The two hard rules */}
+        <section className="sketch-border bg-white p-6 flex flex-col gap-4">
+          <h2 className="font-bold text-xl" style={{ fontFamily: "var(--font-quicksand)" }}>
+            How the AI stays safe
+          </h2>
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-3">
+              <span className="material-symbols-outlined text-primary mt-0.5 shrink-0">lock</span>
+              <div>
+                <p className="font-bold text-sm" style={{ fontFamily: "var(--font-nunito)" }}>The AI never invents experiments</p>
+                <p className="text-sm text-on-surface-variant mt-0.5">
+                  It only selects from the pre-approved, human-written list above. Every experiment has fixed instructions, fixed warnings, and a fixed safety tier. The AI cannot add steps or modify safety text.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <span className="material-symbols-outlined text-primary mt-0.5 shrink-0">rule</span>
+              <div>
+                <p className="font-bold text-sm" style={{ fontFamily: "var(--font-nunito)" }}>Results are multiple-choice only</p>
+                <p className="text-sm text-on-surface-variant mt-0.5">
+                  You report what you observed using pre-written options — no free text, no photo interpretation mid-loop. This keeps the confidence scores honest and prevents the AI from guessing based on ambiguous descriptions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Honest Scope */}
+        <section className="border border-outline-variant rounded-xl p-5 flex flex-col gap-2">
+          <h2 className="font-bold" style={{ fontFamily: "var(--font-quicksand)" }}>
+            What this prototype can and can&apos;t do
+          </h2>
+          <p className="text-sm text-on-surface-variant leading-relaxed" style={{ fontFamily: "var(--font-nunito)" }}>
+            This prototype identifies among <strong>6 safe, non-toxic, non-reactive reference elements</strong>: iron, copper, zinc, aluminum, sulfur, and graphite. If a sample doesn&apos;t match any of these, it is classified as <strong>Unknown</strong>. The system does not claim to identify arbitrary materials — that would require a much larger, trained classifier.
+          </p>
+          <p className="text-sm text-on-surface-variant leading-relaxed" style={{ fontFamily: "var(--font-nunito)" }}>
+            Samples in the kit contain no explosives or reactive substances. Experiments are strictly physical and observational. This design is aligned with children&apos;s chemistry kit safety expectations (EN 71-4 style).
+          </p>
+        </section>
+
+        {/* Privacy note */}
+        <section className="border border-outline-variant rounded-xl p-5 flex flex-col gap-2">
+          <h2 className="font-bold" style={{ fontFamily: "var(--font-quicksand)" }}>
+            Privacy
+          </h2>
+          <p className="text-sm text-on-surface-variant leading-relaxed" style={{ fontFamily: "var(--font-nunito)" }}>
+            Photos you upload are sent to the on-premise Ollama vision model and are not stored after the response. No personal data is collected. Investigation state is stored locally in your browser session and is cleared when you close the tab.
+          </p>
+        </section>
+
+        <Link
+          href="/lab"
+          className="self-start px-6 py-3 bg-primary text-on-primary border-[3px] border-on-surface rounded-xl ink-shadow font-bold hover:-translate-y-1 transition-transform"
+          style={{ fontFamily: "var(--font-quicksand)" }}
+        >
+          Return to Lab →
         </Link>
+
       </main>
       <StitchFooter />
     </div>

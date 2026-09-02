@@ -70,7 +70,7 @@ export default function ResultPage({ params }: { params: Promise<{ id: string }>
           <p className="text-sm text-on-surface-variant -mt-2">
             Here&apos;s how we used evidence to narrow down the suspects.
           </p>
-          <EvidenceLog trail={state.trail} />
+          <EvidenceLog trail={state.trail} whatExplanations={state.whatExplanations} />
         </div>
 
         <div className="flex justify-center gap-4 mt-4">

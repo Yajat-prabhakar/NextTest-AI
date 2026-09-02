@@ -15,7 +15,8 @@ export interface SampleState {
   trail: EvidenceEntry[];
   nextExpId: string | null;
   whyExplanation: string | null;
-  whatExplanation: string | null;
+  // Indexed by round number — each completed step stores its "what it means" explanation
+  whatExplanations: Record<number, string>;
   finished: boolean;
   identifiedElementId: string | null;
   dateSolved?: string;
@@ -38,7 +39,7 @@ const defaultSampleState: SampleState = {
   trail: [],
   nextExpId: null,
   whyExplanation: null,
-  whatExplanation: null,
+  whatExplanations: {},
   finished: false,
   identifiedElementId: null,
 };
@@ -61,12 +62,11 @@ export function LabProvider({ children }: { children: ReactNode }) {
   const updateSample = (id: string, update: Partial<SampleState>) => {
     setSamples((prev) => {
       const current = prev[id] || defaultSampleState;
-      
-      // Compute status based on fields
+
       let status = current.status;
       const isFinished = update.finished !== undefined ? update.finished : current.finished;
       const hasDistribution = update.distribution !== undefined ? update.distribution : current.distribution;
-      
+
       if (isFinished) {
         status = "solved";
       } else if (hasDistribution) {
