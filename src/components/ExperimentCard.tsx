@@ -41,13 +41,16 @@ export function ExperimentCard({
         </span>
       </div>
 
-      <div className="mb-3 rounded-xl bg-amber-50 p-3 dark:bg-amber-950/30">
-        <p className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-200">
-          ⚠️ Safety
+      <div className={`mb-3 rounded-xl p-3 ${experiment.safetyTier === "medium" ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800" : "bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800"}`}>
+        <p className={`text-xs font-bold uppercase tracking-wider ${experiment.safetyTier === "medium" ? "text-amber-800 dark:text-amber-200" : "text-emerald-800 dark:text-emerald-200"}`}>
+          {experiment.safetyTier === "medium" ? "⚠️ Safety — Adult supervision recommended" : "✓ Safety — Safe to do alone"}
         </p>
-        <p className="mt-1 text-sm leading-relaxed text-amber-900 dark:text-amber-100">
+        <p className={`mt-1 text-sm leading-relaxed ${experiment.safetyTier === "medium" ? "text-amber-900 dark:text-amber-100" : "text-emerald-900 dark:text-emerald-100"}`}>
           {experiment.warning}
         </p>
+        {experiment.safetyTier === "medium" && (
+          <p className="mt-1 text-xs font-bold text-amber-800 dark:text-amber-200">⚠ Do this step with an adult.</p>
+        )}
       </div>
 
       <div className="mb-4 rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800">

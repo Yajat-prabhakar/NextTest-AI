@@ -3,9 +3,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const nav = [
-  { href: "/", label: "Lab", active: ["/", "/lab"] },
-  { href: "/collection", label: "My Collection" },
-  { href: "/how-it-works", label: "Help" },
+  { href: "/", label: "Home", active: ["/"] },
+  { href: "/lab", label: "Lab", active: ["/lab"] },
+  { href: "/collection", label: "My Collection", active: ["/collection"] },
+  { href: "/help", label: "Help", active: ["/help"] },
 ];
 
 export function StitchHeader() {

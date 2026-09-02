@@ -50,13 +50,25 @@ export function NextStepCard({
         {experiment.instructions}
       </p>
 
-      <div className="bg-secondary-container/50 border-2 border-outline-variant rounded-lg p-3 flex gap-2 items-start">
-        <span className="material-symbols-outlined text-secondary" style={{ fontSize: 20 }}>
-          warning
+      <div className={`border-2 rounded-lg p-3 flex gap-2 items-start ${experiment.safetyTier === "medium" ? "bg-amber-50 border-amber-300" : "bg-secondary-container/50 border-outline-variant"}`}>
+        <span className={`material-symbols-outlined ${experiment.safetyTier === "medium" ? "text-amber-700" : "text-secondary"}`} style={{ fontSize: 20 }}>
+          {experiment.safetyTier === "medium" ? "warning" : "health_and_safety"}
         </span>
-        <p className="text-xs font-bold" style={{ fontFamily: "var(--font-nunito)" }}>
-          Safety: {experiment.safetyTier} — {experiment.warning}
-        </p>
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-bold" style={{ fontFamily: "var(--font-nunito)" }}>
+            Safety: {experiment.safetyTier} — {experiment.warning}
+          </p>
+          {experiment.safetyTier === "medium" && (
+            <p className="text-xs font-bold text-amber-800" style={{ fontFamily: "var(--font-nunito)" }}>
+              ⚠ Adult supervision recommended for this test.
+            </p>
+          )}
+          {experiment.safetyTier === "low" && (
+            <p className="text-[11px] text-on-surface-variant" style={{ fontFamily: "var(--font-nunito)" }}>
+              Safe to do alone — physical/observational only, no heat or mixing.
+            </p>
+          )}
+        </div>
       </div>
 
       <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant" style={{ fontFamily: "var(--font-nunito)" }}>

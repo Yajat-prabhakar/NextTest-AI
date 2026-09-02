@@ -79,17 +79,17 @@ export interface VisionResult {
   rawJson: unknown;
 }
 
-const VISION_SYSTEM_PROMPT = `You are a careful lab assistant for a children's element identification kit.
-The kit contains exactly 6 known materials: iron, copper, zinc, aluminum, sulfur, graphite (carbon).
-There is a 7th bucket called "unknown" for anything that does not look like one of the 6, or is ambiguous / occluded / unrecognizable.
+const VISION_SYSTEM_PROMPT = `You are a materials science assistant helping identify mystery element samples from a kit. The kit contains exactly 6 elements: iron, copper, zinc, aluminum, sulfur, graphite. There is an \"unknown\" bucket for anything unrecognizable.
 
-Given the photo, estimate a probability-like confidence for each of the 7 buckets.
-- Numbers must be between 0 and 1 and sum to 1.0 (give a proper distribution).
-- Be honest about uncertainty — if the image is blurry or ambiguous, spread probability toward "unknown".
-- This is a rough first impression, not a guaranteed classifier.
-- Return ONLY valid JSON with this exact shape:
-{"iron": 0.0, "copper": 0.0, "zinc": 0.0, "aluminum": 0.0, "sulfur": 0.0, "graphite": 0.0, "unknown": 0.0}
-No markdown fences, no extra text.`;
+Given the image, estimate a probability for each of the 7 categories based ONLY on visible color, surface luster, and texture.
+
+IMPORTANT RULES:
+- Probabilities must sum to 1.0
+- Never assign 1.0 to any single element — you are looking at a photo and cannot be 100% certain
+- Never assign 0.0 unless it is completely impossible (e.g. sulfur is yellow, so iron=0.0 for a yellow sample)
+- Spread uncertainty realistically — if something looks like copper, the second-most-likely should still get at least 0.05
+- Respond ONLY with valid JSON, no markdown, no explanation:
+{"iron": 0.X, "copper": 0.X, "zinc": 0.X, "aluminum": 0.X, "sulfur": 0.X, "graphite": 0.X, "unknown": 0.X}`;
 
 export async function classifyWithVisionLLM(opts: {
   baseUrl: string;
@@ -110,15 +110,13 @@ export async function classifyWithVisionLLM(opts: {
     apiKey: opts.apiKey,
     model: opts.model,
     temperature: 0.2,
-    responseFormat: { type: "json_object" },
     messages: [
-      { role: "system", content: VISION_SYSTEM_PROMPT },
       {
         role: "user",
         content: [
           {
             type: "text",
-            text: "Identify the element sample in the photo. Return the 7-way JSON distribution.",
+            text: VISION_SYSTEM_PROMPT,
           },
           { type: "image_url", image_url: { url: imageUrl } },
         ],
@@ -141,8 +139,15 @@ export async function classifyWithVisionLLM(opts: {
 
   const dist = {} as Distribution;
   let sum = 0;
+  
+  // Make parsed keys lowercase for easier matching
+  const lowerParsed: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(parsed)) {
+    lowerParsed[k.toLowerCase()] = v;
+  }
+
   for (const id of ELEMENT_IDS) {
-    const v = parsed[id];
+    const v = lowerParsed[id];
     const num = typeof v === "number" && Number.isFinite(v) ? v : 0;
     const clamped = Math.max(0, Math.min(1, num));
     dist[id] = clamped;
@@ -158,7 +163,31 @@ export async function classifyWithVisionLLM(opts: {
   }
 
   const normalized = normalizeDistribution(dist);
-  return { distribution: normalized, rawJson: parsed };
+
+  // Safety cap: vision-only confidence should never skip the experimental loop.
+  // If any single element is > 0.92, pull it back and redistribute the surplus
+  // so students always get at least one experiment to verify.
+  const CAP = 0.92;
+  let cappedAny = false;
+  let surplus = 0;
+  const capped = { ...normalized };
+  for (const id of ELEMENT_IDS) {
+    if (capped[id] > CAP) {
+      surplus += capped[id] - CAP;
+      capped[id] = CAP;
+      cappedAny = true;
+    }
+  }
+  if (cappedAny && surplus > 0) {
+    // Redistribute surplus evenly among the low-confidence candidates
+    const lowIds = ELEMENT_IDS.filter((id) => capped[id] < CAP);
+    if (lowIds.length > 0) {
+      const share = surplus / lowIds.length;
+      for (const id of lowIds) capped[id] += share;
+    }
+  }
+
+  return { distribution: cappedAny ? normalizeDistribution(capped) : normalized, rawJson: parsed };
 }
 
 // ── Text LLM — kid-friendly explanations ─────────────────────────
