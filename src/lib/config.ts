@@ -17,9 +17,10 @@ function parseThreshold(raw: string | undefined): number {
 
 /** Server-side only — reads from process.env. Call inside route handlers / server components. */
 export function getServerConfig(): AppConfig {
-  // Allow OLLAMA_BASE_URL to be set as either "http://host:8080" or full ".../v1/chat/completions"
+  // Local Ollama listens on port 11434. A compatible remote endpoint can still
+  // be selected explicitly with OLLAMA_BASE_URL.
   const rawBase =
-    process.env.OLLAMA_BASE_URL?.replace(/\/+$/, "") ?? "";
+    process.env.OLLAMA_BASE_URL?.replace(/\/+$/, "") ?? "http://127.0.0.1:11434";
   const baseUrl = rawBase
     .replace(/\/v1\/chat\/completions\/?$/i, "")
     .replace(/\/+$/, "");

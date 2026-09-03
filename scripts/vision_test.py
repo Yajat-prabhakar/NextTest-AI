@@ -34,7 +34,7 @@ import urllib.request
 from pathlib import Path
 
 ELEMENTS = ["iron", "copper", "zinc", "aluminum", "sulfur", "graphite", "unknown"]
-DEFAULT_BASE = "http://130.210.8.13:8080"
+DEFAULT_BASE = "http://127.0.0.1:11434"
 DEFAULT_MODEL = "qwen2.5vl:3b"
 TIMEOUT = 120  # vision cold-start can exceed 60s (nginx proxy_read_timeout is 60s — will retry)
 
@@ -55,7 +55,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--image", "-i", required=True, help="Path to sample image (PNG/JPEG)")
     p.add_argument("--model", default=os.getenv("OLLAMA_VISION_MODEL", DEFAULT_MODEL))
     p.add_argument("--base-url", default=os.getenv("OLLAMA_BASE_URL", DEFAULT_BASE),
-                   help="Ollama base URL, e.g. http://130.210.8.13:8080")
+                   help="Ollama base URL, e.g. http://127.0.0.1:11434")
     p.add_argument("--api-key", default=os.getenv("OLLAMA_API_KEY"),
                    help="Bearer token (or set OLLAMA_API_KEY env)")
     p.add_argument("--timeout", type=int, default=TIMEOUT, help="HTTP timeout seconds")
@@ -152,8 +152,6 @@ def call_ollama(base_url: str, api_key: str, model: str, image_b64: str, mime: s
 
 def main() -> None:
     args = parse_args()
-    if not args.api_key:
-        sys.exit("Missing API key: set OLLAMA_API_KEY env or pass --api-key (never commit it)")
     img_path = Path(args.image)
     b64, mime = load_image_b64(img_path)
 
