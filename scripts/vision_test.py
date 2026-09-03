@@ -14,7 +14,7 @@ Features vs the original one-liner:
 Usage:
   python scripts/vision_test.py --image Copper-21991.png
   OLLAMA_API_KEY=xxx OLLAMA_BASE_URL=http://130.210.8.13:8080 python scripts/vision_test.py --image path/to/sample.jpg --raw
-  python scripts/vision_test.py --image Copper-21991.png --model qwen2.5vl:3b --timeout 120
+  python scripts/vision_test.py --image Copper-21991.png --model Qwen3-VL:latest --timeout 120
 
 Env:
   OLLAMA_BASE_URL  default http://130.210.8.13:8080 (NOT .../v1/chat/completions — script appends it)
@@ -35,7 +35,7 @@ from pathlib import Path
 
 ELEMENTS = ["iron", "copper", "zinc", "aluminum", "sulfur", "graphite", "unknown"]
 DEFAULT_BASE = "http://127.0.0.1:11434"
-DEFAULT_MODEL = "qwen2.5vl:3b"
+DEFAULT_MODEL = "Qwen3-VL:latest"
 TIMEOUT = 120  # vision cold-start can exceed 60s (nginx proxy_read_timeout is 60s — will retry)
 
 SYSTEM_PROMPT = (

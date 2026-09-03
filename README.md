@@ -3,11 +3,10 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 ## Getting Started
 
 This app uses a local Ollama model by default, at `http://127.0.0.1:11434`.
-Install Ollama and download the models before starting the app:
+Install Ollama and download the model before starting the app:
 
 ```bash
-ollama pull qwen2.5vl:3b
-ollama pull qwen2.5:3b
+ollama pull Qwen3-VL:latest
 ```
 
 No API key is required. To use different local models, copy `.env.example` to

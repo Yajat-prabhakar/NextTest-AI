@@ -1,7 +1,7 @@
 /**
  * Server-side Ollama (OpenAI-compatible) clients.
- * - Vision LLM: qwen2.5vl:3b — zero-shot, returns confidence distribution (first impression only)
- * - Text LLM: qwen2.5:3b  — kid-friendly explanations, never touches probability math
+ * - Vision LLM: Qwen3-VL:latest — zero-shot, returns confidence distribution (first impression only)
+ * - Text LLM: Qwen3-VL:latest — kid-friendly explanations, never touches probability math
  */
 import type { Distribution } from "./bayes";
 import { ELEMENT_IDS } from "./constants";

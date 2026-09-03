@@ -27,8 +27,8 @@ export function getServerConfig(): AppConfig {
   return {
     ollamaBaseUrl: baseUrl,
     ollamaApiKey: process.env.OLLAMA_API_KEY ?? "",
-    visionModel: process.env.OLLAMA_VISION_MODEL ?? "qwen2.5vl:3b",
-    textModel: process.env.OLLAMA_TEXT_MODEL ?? "qwen2.5:3b",
+    visionModel: process.env.OLLAMA_VISION_MODEL ?? "Qwen3-VL:latest",
+    textModel: process.env.OLLAMA_TEXT_MODEL ?? "Qwen3-VL:latest",
     confidenceThreshold: parseThreshold(
       process.env.NEXTTEST_CONFIDENCE_THRESHOLD
     ),
