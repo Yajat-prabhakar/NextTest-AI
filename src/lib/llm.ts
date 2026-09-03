@@ -18,7 +18,7 @@ interface OllamaChatMessage {
 }
 
 interface OllamaChatResponse {
-  choices: Array<{ message: { content: string } }>;
+  choices: Array<{ message: { content?: string; reasoning_content?: string } }>;
   error?: { message: string };
 }
 
@@ -30,6 +30,7 @@ async function ollamaChat(opts: {
   temperature?: number;
   maxTokens?: number;
   responseFormat?: { type: "json_object" };
+  think?: boolean;
 }): Promise<string> {
   const url = `${opts.baseUrl}/v1/chat/completions`;
   // No client-side timeout — wait indefinitely until Ollama responds
@@ -49,6 +50,7 @@ async function ollamaChat(opts: {
         temperature: opts.temperature ?? 0.2,
         max_tokens: opts.maxTokens ?? 600,
         ...(opts.responseFormat ? { response_format: opts.responseFormat } : {}),
+        ...(opts.think === undefined ? {} : { think: opts.think }),
       }),
     });
 
@@ -110,6 +112,11 @@ export async function classifyWithVisionLLM(opts: {
     apiKey: opts.apiKey,
     model: opts.model,
     temperature: 0.2,
+    maxTokens: 300,
+    responseFormat: { type: "json_object" },
+    // Qwen3-VL can spend the whole token budget in its reasoning channel.
+    // The classifier needs a short machine-readable result instead.
+    think: false,
     messages: [
       {
         role: "user",
