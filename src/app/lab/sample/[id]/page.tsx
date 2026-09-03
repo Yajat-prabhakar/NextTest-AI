@@ -66,7 +66,7 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
             distribution: dist,
             visionRaw: json.raw,
             finished: true,
-            identifiedElementId: getTopCandidate(dist)?.id || "unknown",
+            identifiedElementId: getTopCandidate(dist).id,
             dateSolved: new Date().toISOString(),
           });
         } else {
@@ -76,7 +76,7 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
             visionRaw: json.raw,
             nextExpId: nxt,
             finished: !nxt,
-            ...(!nxt ? { identifiedElementId: getTopCandidate(dist)?.id || "unknown", dateSolved: new Date().toISOString() } : {}),
+            ...(!nxt ? { identifiedElementId: getTopCandidate(dist).id, dateSolved: new Date().toISOString() } : {}),
           });
           if (nxt) {
             const exp = getExperiment(nxt);
@@ -138,7 +138,7 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
         updateSample(id, {
           finished: true,
           nextExpId: null,
-          identifiedElementId: getTopCandidate(posterior)?.id || "unknown",
+          identifiedElementId: getTopCandidate(posterior).id,
           dateSolved: new Date().toISOString(),
         });
       } else {
@@ -146,7 +146,7 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
         updateSample(id, {
           nextExpId: nxt,
           finished: !nxt,
-          ...(!nxt ? { identifiedElementId: getTopCandidate(posterior)?.id || "unknown", dateSolved: new Date().toISOString() } : {}),
+          ...(!nxt ? { identifiedElementId: getTopCandidate(posterior).id, dateSolved: new Date().toISOString() } : {}),
         });
 
         if (nxt) {

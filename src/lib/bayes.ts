@@ -2,7 +2,7 @@
  * Deterministic Bayesian update — NOT the LLM.
  * Pure functions, fully unit-testable.
  */
-import { ELEMENT_IDS, type ElementId } from "./constants";
+import { ELEMENT_IDS, REAL_ELEMENT_IDS, EPSILON as DEFAULT_EPSILON, type ElementId } from "./constants";
 import { EXPERIMENTS, getExperiment } from "./experiments";
 
 export type Distribution = Record<ElementId, number>;
@@ -133,14 +133,24 @@ export function expectedInformationGain(
   return hPrior - expectedPosteriorEntropy;
 }
 
+
 /**
  * Select the next experiment with maximal expected information gain
- * among experiments not yet performed. Returns null if all done.
+ * among experiments not yet performed.
+ *
+ * Returns null when:
+ *   - all experiments are completed, OR
+ *   - the best remaining info gain < epsilon (evidence has plateaued)
+ *
  * Ties broken by original menu order (deterministic).
+ *
+ * @param epsilon - min bits of info gain considered worth another test.
+ *   Defaults to EPSILON (0.03) from constants — matches simulation tuning.
  */
 export function selectNextExperiment(
   prior: Distribution,
-  completedExperimentIds: Set<string> | string[]
+  completedExperimentIds: Set<string> | string[],
+  epsilon = DEFAULT_EPSILON
 ): string | null {
   const completed = new Set(completedExperimentIds);
   let bestId: string | null = null;
@@ -154,17 +164,32 @@ export function selectNextExperiment(
       bestId = exp.id;
     }
   }
+
+  // Plateau guard: don't run another test if the evidence isn't moving
+  if (bestGain <= epsilon) return null;
+
   return bestId;
 }
 
 // ── Threshold / decision helpers ─────────────────────────────────
 
+/**
+ * Returns the top element by probability.
+ *
+ * @param d - current belief distribution
+ * @param realOnly - when true (default), "unknown" is excluded from the
+ *   argmax so it can never be returned as the final answer.
+ *   Pass false only when you explicitly want to include unknown
+ *   (e.g. internal diagnostics).
+ */
 export function getTopCandidate(
-  d: Distribution
+  d: Distribution,
+  realOnly = true
 ): { id: ElementId; confidence: number } {
-  let bestId: ElementId = ELEMENT_IDS[0];
+  const ids = realOnly ? (REAL_ELEMENT_IDS as ReadonlyArray<ElementId>) : ELEMENT_IDS;
+  let bestId: ElementId = ids[0];
   let best = d[bestId] ?? 0;
-  for (const id of ELEMENT_IDS) {
+  for (const id of ids) {
     const v = d[id] ?? 0;
     if (v > best) {
       best = v;
@@ -181,6 +206,7 @@ export function hasReachedThreshold(
   return getTopCandidate(d).confidence >= threshold;
 }
 
+/** All elements sorted descending by confidence — includes unknown. */
 export function sortedCandidates(
   d: Distribution
 ): Array<{ id: ElementId; confidence: number }> {
@@ -188,3 +214,16 @@ export function sortedCandidates(
     .map((id) => ({ id, confidence: d[id] ?? 0 }))
     .sort((a, b) => b.confidence - a.confidence);
 }
+
+/**
+ * The 6 real elements sorted descending by confidence — excludes unknown.
+ * Use this for student-facing confidence displays.
+ */
+export function sortedRealCandidates(
+  d: Distribution
+): Array<{ id: ElementId; confidence: number }> {
+  return (REAL_ELEMENT_IDS as ReadonlyArray<ElementId>)
+    .map((id) => ({ id, confidence: d[id] ?? 0 }))
+    .sort((a, b) => b.confidence - a.confidence);
+}
+

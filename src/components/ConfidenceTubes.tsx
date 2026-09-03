@@ -2,7 +2,7 @@
 
 import { ELEMENT_COLORS, ELEMENT_LABELS } from "@/lib/constants";
 import type { Distribution } from "@/lib/bayes";
-import { sortedCandidates } from "@/lib/bayes";
+import { sortedRealCandidates } from "@/lib/bayes";
 
 interface ConfidenceTubesProps {
   distribution: Distribution;
@@ -11,7 +11,7 @@ interface ConfidenceTubesProps {
 }
 
 export function ConfidenceTubes({ distribution, compact = false }: ConfidenceTubesProps) {
-  const sorted = sortedCandidates(distribution);
+  const sorted = sortedRealCandidates(distribution);
   const top3 = sorted.slice(0, 3);
   const rest = sorted.slice(3);
 

@@ -8,6 +8,7 @@ import { StitchFooter } from "@/components/StitchFooter";
 import { EvidenceLog } from "@/components/EvidenceLog";
 import { useLabContext } from "@/lib/store";
 import { ELEMENT_LABELS } from "@/lib/constants";
+import { getTopCandidate } from "@/lib/bayes";
 
 const FUN_FACTS: Record<string, string> = {
   iron: "Iron makes up a huge part of the Earth's core! It's magnetic and rusts when exposed to oxygen and water.",
@@ -16,7 +17,7 @@ const FUN_FACTS: Record<string, string> = {
   aluminum: "Aluminum is super light and strong. It's used in everything from soda cans to airplanes.",
   sulfur: "Sulfur is bright yellow and can smell like rotten eggs when it forms certain compounds, but pure sulfur has no smell!",
   graphite: "Graphite is made of pure carbon, just like diamonds! The difference is in how the atoms are arranged.",
-  unknown: "This sample isn't in our standard reference kit. In a real lab, we'd use advanced machines like a mass spectrometer to figure out exactly what it is!",
+  unknown: "Even after all those tests, the evidence was spread across a few candidates. The AI gave its best guess above — but in a real lab, we'd use advanced machines like a spectrometer to be completely sure!",
 };
 
 export default function ResultPage({ params }: { params: Promise<{ id: string }> }) {
@@ -35,6 +36,14 @@ export default function ResultPage({ params }: { params: Promise<{ id: string }>
   const elementLabel = ELEMENT_LABELS[elementId as keyof typeof ELEMENT_LABELS] || elementId;
   const isUnknown = elementId === "unknown";
 
+  // Pull the actual confidence from the final distribution (real-elements-only argmax)
+  const finalConfidence = state.distribution
+    ? getTopCandidate(state.distribution).confidence
+    : null;
+  const confidencePct = finalConfidence !== null
+    ? Math.round(finalConfidence * 100)
+    : null;
+
   return (
     <div className="min-h-screen flex flex-col">
       <StitchHeader />
@@ -46,12 +55,18 @@ export default function ResultPage({ params }: { params: Promise<{ id: string }>
             {isUnknown ? '❓' : '✓'}
           </div>
           <h1 className="font-bold text-[32px] md:text-[48px] text-primary" style={{ fontFamily: "var(--font-quicksand)" }}>
-            {isUnknown ? "Mystery Sample" : `Element Identified: ${elementLabel}`}
+            {isUnknown ? "Best Guess: Uncertain" : `Element Identified: ${elementLabel}`}
           </h1>
-          <p className="text-on-surface-variant font-bold mt-2" style={{ fontFamily: "var(--font-nunito)" }}>
+          {confidencePct !== null && (
+            <p className="text-on-surface-variant font-bold mt-1 text-lg" style={{ fontFamily: "var(--font-nunito)" }}>
+              {confidencePct}% confident
+            </p>
+          )}
+          <p className="text-on-surface-variant font-bold mt-1" style={{ fontFamily: "var(--font-nunito)" }}>
             Sample #{id} Case Closed
           </p>
         </div>
+
 
         <div className="sketch-border bg-white p-6 ink-shadow-sm flex flex-col gap-3">
           <div className="flex items-center gap-2">
