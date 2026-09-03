@@ -18,7 +18,7 @@ interface OllamaChatMessage {
 }
 
 interface OllamaChatResponse {
-  choices: Array<{ message: { content?: string; reasoning_content?: string } }>;
+  choices: Array<{ message: { content?: string; reasoning?: string } }>;
   error?: { message: string };
 }
 
@@ -30,7 +30,7 @@ async function ollamaChat(opts: {
   temperature?: number;
   maxTokens?: number;
   responseFormat?: { type: "json_object" };
-  think?: boolean;
+  reasoningEffort?: "none" | "low" | "medium" | "high";
 }): Promise<string> {
   const url = `${opts.baseUrl}/v1/chat/completions`;
   // No client-side timeout — wait indefinitely until Ollama responds
@@ -50,13 +50,18 @@ async function ollamaChat(opts: {
         temperature: opts.temperature ?? 0.2,
         max_tokens: opts.maxTokens ?? 600,
         ...(opts.responseFormat ? { response_format: opts.responseFormat } : {}),
-        ...(opts.think === undefined ? {} : { think: opts.think }),
+        ...(opts.reasoningEffort
+          ? { reasoning_effort: opts.reasoningEffort }
+          : {}),
       }),
     });
 
     if (res.ok) {
       const json = (await res.json()) as OllamaChatResponse;
-      const content = json.choices?.[0]?.message?.content;
+      const message = json.choices?.[0]?.message;
+      // Ollama's OpenAI-compatible endpoint can return Qwen3-VL's completed
+      // structured output in `reasoning` while leaving `content` empty.
+      const content = message?.content?.trim() || message?.reasoning?.trim();
       if (!content) throw new Error("Empty response from Ollama");
       return content;
     }
@@ -114,9 +119,9 @@ export async function classifyWithVisionLLM(opts: {
     temperature: 0.2,
     maxTokens: 300,
     responseFormat: { type: "json_object" },
-    // Qwen3-VL can spend the whole token budget in its reasoning channel.
-    // The classifier needs a short machine-readable result instead.
-    think: false,
+    // `reasoning_effort` is the OpenAI-compatible control supported by the
+    // /v1/chat/completions endpoint used here.
+    reasoningEffort: "none",
     messages: [
       {
         role: "user",
@@ -236,6 +241,7 @@ In 2-3 short sentences, explain in kid-friendly language WHAT this result tells 
     model: opts.model,
     temperature: 0.6,
     maxTokens: 200,
+    reasoningEffort: "none",
     messages: [
       {
         role: "system",
