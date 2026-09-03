@@ -79,7 +79,7 @@ export default function LabSelectionPage() {
                     </div>
                   ) : (
                     <Link
-                      href={state.status === "solved" ? `/lab/sample/${id}/result` : `/lab/sample/${id}`}
+                      href={`/lab/sample/${id}`}
                       className="w-full inline-flex justify-center items-center gap-2 px-4 py-2 bg-white border-2 border-on-surface rounded-xl font-bold hover:bg-surface-container-low transition-colors"
                     >
                       {state.status === "solved" ? "View Case File" : state.status === "in_progress" ? "Continue Investigation" : "Start Investigation"}

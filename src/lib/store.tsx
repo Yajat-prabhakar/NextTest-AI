@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import type { Distribution, EvidenceEntry } from "./bayes";
 import { DEFAULT_THRESHOLD } from "./constants";
+import type { ExplanationPair } from "./explanations";
 
 export type SampleStatus = "new" | "in_progress" | "solved";
 
@@ -14,9 +15,13 @@ export interface SampleState {
   completed: string[];
   trail: EvidenceEntry[];
   nextExpId: string | null;
-  whyExplanation: string | null;
-  // Indexed by round number — each completed step stores its "what it means" explanation
-  whatExplanations: Record<number, string>;
+  /** The pending experiment's "why" explanation — ExplanationPair so the page
+   *  can store science copy (.main) and algorithm detail (.detail) together. */
+  whyExplanation: ExplanationPair | null;
+  /** Indexed by round number — why the selected experiment was chosen. */
+  whyExplanations: Record<number, ExplanationPair>;
+  /** Indexed by round number — what the observed result means. */
+  whatExplanations: Record<number, ExplanationPair>;
   finished: boolean;
   identifiedElementId: string | null;
   dateSolved?: string;
@@ -39,6 +44,7 @@ const defaultSampleState: SampleState = {
   trail: [],
   nextExpId: null,
   whyExplanation: null,
+  whyExplanations: {},
   whatExplanations: {},
   finished: false,
   identifiedElementId: null,

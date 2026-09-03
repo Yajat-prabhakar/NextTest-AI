@@ -12,7 +12,7 @@ import {
   getTopCandidate,
   sortedRealCandidates,
 } from "../bayes";
-import { ELEMENT_IDS, REAL_ELEMENT_IDS, EPSILON } from "../constants";
+import { REAL_ELEMENT_IDS, EPSILON } from "../constants";
 import { EXPERIMENTS } from "../experiments";
 import type { Distribution } from "../bayes";
 
@@ -102,7 +102,8 @@ assert(Math.abs(EPSILON - 0.03) < 1e-9, `EPSILON should be 0.03, got ${EPSILON}`
 const expIds = new Set(EXPERIMENTS.map((e) => e.id));
 const requiredNew = [
   "weight_test",
-  "color_luster_test",
+  // color_luster_test was removed (ambient lighting unreliable); copper detection
+  // is now handled by streak_test's reddish_copper_streak outcome.
   "scratch_test",
   "heat_test",
   "sound_test",
@@ -111,7 +112,8 @@ const requiredNew = [
 for (const id of requiredNew) {
   assert(expIds.has(id), `Missing new experiment: ${id}`);
 }
-assert(EXPERIMENTS.length === 10, `Expected 10 experiments, got ${EXPERIMENTS.length}`);
+assert(!expIds.has("color_luster_test"), "color_luster_test must be removed");
+assert(EXPERIMENTS.length === 9, `Expected 9 experiments, got ${EXPERIMENTS.length}`);
 
 // Weight test: "feels_light" should spike aluminum
 const afterLight = bayesianUpdate(uniform, "weight_test", "feels_light");
@@ -124,9 +126,31 @@ assert(
 const afterHeavy = bayesianUpdate(uniform, "weight_test", "feels_heavy");
 assert(afterHeavy.aluminum < 0.10, `aluminum after feels_heavy should be low, got ${afterHeavy.aluminum}`);
 
-// Color: reddish → copper
-const afterReddish = bayesianUpdate(uniform, "color_luster_test", "reddish_metallic");
-assert(getTopCandidate(afterReddish).id === "copper", `top after reddish should be copper, got ${getTopCandidate(afterReddish).id}`);
+// Streak test: reddish_copper_streak → copper should be top candidate
+const afterReddishStreak = bayesianUpdate(uniform, "streak_test", "reddish_copper_streak");
+assert(
+  getTopCandidate(afterReddishStreak).id === "copper",
+  `top after reddish_copper_streak should be copper, got ${getTopCandidate(afterReddishStreak).id}`
+);
+
+// ── Hand-computed Bayesian update verification ────────────────────
+//
+// Verify magnet_test / attracted from uniform against manual calculation:
+//   uniform prior = 1/7 for each of the 7 elements
+//   likelihoods (attracted): iron=0.92, copper=0.02, zinc=0.03, aluminum=0.02,
+//                             sulfur=0.01, graphite=0.02, unknown=0.20
+//   unnormalized posteriors = prior × likelihood:
+//     iron=0.13143, copper=0.00286, zinc=0.00429, aluminum=0.00286,
+//     sulfur=0.00143, graphite=0.00286, unknown=0.02857
+//   sum ≈ 0.17429
+//   posterior iron ≈ 0.13143 / 0.17429 ≈ 0.7541
+//
+// The actual computed value should be within 0.01 of the hand-computed figure.
+const handComputedIronAfterMagnet = (0.92 / 7) / ([0.92, 0.02, 0.03, 0.02, 0.01, 0.02, 0.20].reduce((s, v) => s + v / 7, 0));
+assert(
+  Math.abs(afterMagnet.iron - handComputedIronAfterMagnet) < 0.01,
+  `iron posterior after magnet/attracted: got ${afterMagnet.iron.toFixed(4)}, expected ≈ ${handComputedIronAfterMagnet.toFixed(4)}`
+);
 
 // ── EIG sanity ────────────────────────────────────────────────────
 

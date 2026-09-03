@@ -1,37 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 import { use } from "react";
 import Link from "next/link";
 import { StitchHeader } from "@/components/StitchHeader";
 import { StitchFooter } from "@/components/StitchFooter";
 import { UploadCard } from "@/components/UploadCard";
-import { NextStepCard } from "@/components/NextStepCard";
 import { ConfidenceTubes } from "@/components/ConfidenceTubes";
-import { EvidenceLog } from "@/components/EvidenceLog";
+import { InvestigationThread } from "@/components/InvestigationThread";
 import { getExperiment } from "@/lib/experiments";
 import { bayesianUpdate, getTopCandidate, hasReachedThreshold, selectNextExperiment } from "@/lib/bayes";
 import type { Distribution, EvidenceEntry } from "@/lib/bayes";
 import { ELEMENT_LABELS } from "@/lib/constants";
+import { buildResultExplanation, buildWhyExperimentExplanation } from "@/lib/explanations";
+import type { ExplanationPair } from "@/lib/explanations";
 import { useLabContext } from "@/lib/store";
 
 export default function ActiveInvestigationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const router = useRouter();
   const { samples, updateSample, threshold, setThreshold } = useLabContext();
   const state = samples[id];
 
   const [classifying, setClassifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loadingExplain, setLoadingExplain] = useState(false);
-
-  // Redirect once solved
-  useEffect(() => {
-    if (state?.status === "solved") {
-      router.replace(`/lab/sample/${id}/result`);
-    }
-  }, [state?.status, id, router]);
 
   const top = state?.distribution ? getTopCandidate(state.distribution) : null;
 
@@ -47,8 +38,11 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
         trail: [],
         nextExpId: null,
         whyExplanation: null,
+        whyExplanations: {},
         whatExplanations: {},
         finished: false,
+        identifiedElementId: null,
+        dateSolved: undefined,
       });
 
       try {
@@ -71,26 +65,19 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
           });
         } else {
           const nxt = selectNextExperiment(dist, []);
+          // buildWhyExperimentExplanation now returns ExplanationPair {main, detail}
+          const whyPair = nxt ? buildWhyExperimentExplanation(dist, nxt, []) : null;
+          const whyExplanations: Record<number, ExplanationPair> =
+            whyPair ? { 1: whyPair } : {};
           updateSample(id, {
             distribution: dist,
             visionRaw: json.raw,
             nextExpId: nxt,
+            whyExplanation: whyPair,
+            whyExplanations,
             finished: !nxt,
             ...(!nxt ? { identifiedElementId: getTopCandidate(dist).id, dateSolved: new Date().toISOString() } : {}),
           });
-          if (nxt) {
-            const exp = getExperiment(nxt);
-            setLoadingExplain(true);
-            fetch("/api/explain", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ kind: "why_experiment", currentDistribution: dist, nextExperimentId: nxt, nextExperimentName: exp?.name }),
-            })
-              .then((r) => r.json())
-              .then((j) => updateSample(id, { whyExplanation: j.explanation }))
-              .catch(() => {})
-              .finally(() => setLoadingExplain(false));
-          }
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
@@ -126,12 +113,14 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
 
       const newCompleted = [...state.completed, state.nextExpId];
       const newTrail = [...state.trail, entry];
+      const resultExplanation = buildResultExplanation(entry);
 
       updateSample(id, {
         trail: newTrail,
         completed: newCompleted,
         distribution: posterior,
         whyExplanation: null,
+        whatExplanations: { ...(state.whatExplanations ?? {}), [round]: resultExplanation },
       });
 
       if (hasReachedThreshold(posterior, threshold)) {
@@ -143,43 +132,19 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
         });
       } else {
         const nxt = selectNextExperiment(posterior, newCompleted);
+        const nextRound = round + 1;
+        const nextWhy = nxt
+          ? buildWhyExperimentExplanation(posterior, nxt, newCompleted)
+          : null;
         updateSample(id, {
           nextExpId: nxt,
+          whyExplanation: nextWhy,
+          whyExplanations: nextWhy
+            ? { ...(state.whyExplanations ?? {}), [nextRound]: nextWhy }
+            : state.whyExplanations ?? {},
           finished: !nxt,
           ...(!nxt ? { identifiedElementId: getTopCandidate(posterior).id, dateSolved: new Date().toISOString() } : {}),
         });
-
-        if (nxt) {
-          setLoadingExplain(true);
-          const nextExp = getExperiment(nxt);
-
-          // "what it means" → stored per-round inside whatExplanations, shown in EvidenceLog
-          fetch("/api/explain", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ kind: "what_result_means", currentDistribution: posterior, lastExperimentId: state.nextExpId, lastExperimentName: exp.name, lastResultLabel: opt.label }),
-          })
-            .then((r) => r.json())
-            .then((j) => {
-              if (j.explanation) {
-                updateSample(id, {
-                  whatExplanations: { ...(state.whatExplanations ?? {}), [round]: j.explanation },
-                });
-              }
-            })
-            .catch(() => {});
-
-          // "why next test" → shown in NextStepCard before the student runs it
-          fetch("/api/explain", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ kind: "why_experiment", currentDistribution: posterior, nextExperimentId: nxt, nextExperimentName: nextExp?.name }),
-          })
-            .then((r) => r.json())
-            .then((j) => updateSample(id, { whyExplanation: j.explanation }))
-            .catch(() => {})
-            .finally(() => setLoadingExplain(false));
-        }
       }
     },
     [state, threshold, id, updateSample]
@@ -187,7 +152,7 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
 
   if (!state) return null;
 
-  const nextExperiment = state.nextExpId ? getExperiment(state.nextExpId) : null;
+  const nextExperiment = state.nextExpId ? getExperiment(state.nextExpId) ?? null : null;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -272,37 +237,33 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
               </div>
             )}
 
-            {/* Evidence Log — single source of truth for all past reasoning */}
-            <EvidenceLog trail={state.trail} whatExplanations={state.whatExplanations} />
+            {state.distribution && (
+              <div className="sketch-border bg-white p-5 ink-shadow-sm">
+                <div className="flex items-center justify-between gap-3 mb-5">
+                  <h2 className="font-bold text-xl" style={{ fontFamily: "var(--font-quicksand)" }}>
+                    Live Confidence
+                  </h2>
+                  <span className="text-xs text-on-surface-variant font-bold px-2 py-0.5 border border-outline-variant rounded-full" style={{ fontFamily: "var(--font-nunito)" }}>
+                    Updates with each answer
+                  </span>
+                </div>
+                <ConfidenceTubes distribution={state.distribution} />
+              </div>
+            )}
           </div>
 
-          {/* Right: Live Confidence + Next Step */}
+          {/* Right: live investigation thread */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             {state.distribution && (
-              <>
-                {/* Live Confidence Panel */}
-                <div className="sketch-border bg-white p-6 ink-shadow-sm">
-                  <div className="flex items-center justify-between mb-5">
-                    <h2 className="font-bold text-xl" style={{ fontFamily: "var(--font-quicksand)" }}>
-                      Live Confidence
-                    </h2>
-                    <span className="text-xs text-on-surface-variant font-bold px-2 py-0.5 border border-outline-variant rounded-full" style={{ fontFamily: "var(--font-nunito)" }}>
-                      Updates with each test
-                    </span>
-                  </div>
-                  <ConfidenceTubes distribution={state.distribution} />
-                </div>
-
-                {/* Next Step — forward-looking only */}
-                {nextExperiment && (
-                  <NextStepCard
-                    experiment={nextExperiment}
-                    explanation={state.whyExplanation}
-                    loadingExplain={loadingExplain}
-                    onSelect={handleOption}
-                  />
-                )}
-              </>
+              <InvestigationThread
+                distribution={state.distribution}
+                trail={state.trail}
+                nextExperiment={nextExperiment}
+                whyExplanations={state.whyExplanations}
+                whatExplanations={state.whatExplanations}
+                finished={state.finished}
+                onSelect={handleOption}
+              />
             )}
 
             {!state.distribution && !classifying && !error && (

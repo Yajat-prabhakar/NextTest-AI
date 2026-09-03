@@ -201,6 +201,9 @@ export const EXPERIMENTS: Experiment[] = [
   },
   // ── New experiments added for aluminum/zinc discrimination and ─────
   // ── broader non-metal separation (see HackTheStack report, Problem 3) ─
+  // NOTE: color_luster_test was removed — raw surface color is too sensitive
+  // to ambient lighting. Copper detection is now handled by streak_test's
+  // reddish_copper_streak outcome instead.
   {
     id: "weight_test",
     name: "Weight-for-Size (Heft) Test",
@@ -240,71 +243,7 @@ export const EXPERIMENTS: Experiment[] = [
       },
     ],
   },
-  {
-    id: "color_luster_test",
-    name: "Color & Luster Test",
-    shortName: "Color",
-    instructions:
-      "Look at the sample under good lighting. Note the dominant color and whether the surface is shiny/metallic, dull, or has a specific hue.",
-    safetyTier: "low",
-    warning: "No chemicals needed. Do not rub eyes after handling samples.",
-    durationHint: "~15 sec",
-    icon: "🎨",
-    options: [
-      {
-        id: "reddish_metallic",
-        label: "Reddish / orange-brown and metallic",
-        likelihoods: {
-          iron: 0.03,
-          copper: 0.92,
-          zinc: 0.02,
-          aluminum: 0.01,
-          sulfur: 0.01,
-          graphite: 0.01,
-          unknown: 0.15,
-        },
-      },
-      {
-        id: "bright_yellow",
-        label: "Bright yellow, waxy or powdery",
-        likelihoods: {
-          iron: 0.01,
-          copper: 0.01,
-          zinc: 0.02,
-          aluminum: 0.01,
-          sulfur: 0.90,
-          graphite: 0.02,
-          unknown: 0.15,
-        },
-      },
-      {
-        id: "dark_gray_streaky",
-        label: "Dark gray or black, leaves marks / looks greasy",
-        likelihoods: {
-          iron: 0.06,
-          copper: 0.01,
-          zinc: 0.02,
-          aluminum: 0.01,
-          sulfur: 0.03,
-          graphite: 0.92,
-          unknown: 0.15,
-        },
-      },
-      {
-        id: "silvery_metallic",
-        label: "Silver / gray metallic and shiny",
-        likelihoods: {
-          iron: 0.90,
-          copper: 0.06,
-          zinc: 0.94,
-          aluminum: 0.97,
-          sulfur: 0.06,
-          graphite: 0.05,
-          unknown: 0.55,
-        },
-      },
-    ],
-  },
+
   {
     id: "scratch_test",
     name: "Fingernail Scratch (Hardness) Test",
@@ -475,16 +414,33 @@ export const EXPERIMENTS: Experiment[] = [
         },
       },
       {
+        // Copper leaves a reddish-brown mark on unglazed ceramic —
+        // this replaces the copper-detection role of the removed Color & Luster test.
+        id: "reddish_copper_streak",
+        label: "Reddish or coppery-brown streak on tile",
+        likelihoods: {
+          iron: 0.02,
+          copper: 0.87,
+          zinc: 0.03,
+          aluminum: 0.02,
+          sulfur: 0.02,
+          graphite: 0.01,
+          unknown: 0.12,
+        },
+      },
+      {
+        // no_streak likelihoods reduced by the amount added to reddish_copper_streak
+        // so each element's probabilities sum to ~1 across all four outcomes.
         id: "no_streak",
         label: "No visible colored streak — tile looks unchanged",
         likelihoods: {
-          iron: 0.78,
-          copper: 0.93,
-          zinc: 0.91,
-          aluminum: 0.93,
-          sulfur: 0.07,
-          graphite: 0.05,
-          unknown: 0.65,
+          iron: 0.76,
+          copper: 0.06,
+          zinc: 0.88,
+          aluminum: 0.91,
+          sulfur: 0.05,
+          graphite: 0.04,
+          unknown: 0.53,
         },
       },
     ],

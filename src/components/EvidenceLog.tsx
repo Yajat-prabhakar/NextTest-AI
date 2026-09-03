@@ -1,11 +1,12 @@
 "use client";
 
 import type { EvidenceEntry } from "@/lib/bayes";
+import type { ExplanationPair } from "@/lib/explanations";
 
 interface EvidenceLogProps {
   trail: EvidenceEntry[];
   /** Keyed by round number — explanation of what each result means, shown inline */
-  whatExplanations?: Record<number, string>;
+  whatExplanations?: Record<number, ExplanationPair>;
 }
 
 export function EvidenceLog({ trail, whatExplanations }: EvidenceLogProps) {
@@ -39,7 +40,7 @@ export function EvidenceLog({ trail, whatExplanations }: EvidenceLogProps) {
                 </p>
                 {explanation && (
                   <p className="text-xs text-on-surface-variant mt-2 pt-2 border-t border-outline-variant leading-relaxed italic">
-                    {explanation}
+                    {explanation.main}
                   </p>
                 )}
               </div>

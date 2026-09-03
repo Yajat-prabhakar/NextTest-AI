@@ -138,7 +138,7 @@ export default function CollectionPage() {
                       whatExplanations={sampleState.whatExplanations}
                     />
                     <Link
-                      href={`/lab/sample/${solvedBySample}/result`}
+                      href={`/lab/sample/${solvedBySample}`}
                       className="inline-block mt-3 text-sm font-bold text-primary hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
