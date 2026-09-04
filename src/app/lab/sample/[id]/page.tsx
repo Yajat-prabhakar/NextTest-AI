@@ -69,6 +69,10 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
           const whyPair = nxt ? buildWhyExperimentExplanation(dist, nxt, []) : null;
           const whyExplanations: Record<number, ExplanationPair> =
             whyPair ? { 1: whyPair } : {};
+          // No experiments left but threshold not reached → Unknown result.
+          // identifiedElementId is only set when confidence has actually crossed
+          // the threshold; otherwise it stays null (= inconclusive / Unknown).
+          const exhaustedWithoutConfirmation = !nxt && !hasReachedThreshold(dist, threshold);
           updateSample(id, {
             distribution: dist,
             visionRaw: json.raw,
@@ -76,7 +80,14 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
             whyExplanation: whyPair,
             whyExplanations,
             finished: !nxt,
-            ...(!nxt ? { identifiedElementId: getTopCandidate(dist).id, dateSolved: new Date().toISOString() } : {}),
+            ...(!nxt
+              ? {
+                  identifiedElementId: exhaustedWithoutConfirmation
+                    ? null
+                    : getTopCandidate(dist).id,
+                  dateSolved: new Date().toISOString(),
+                }
+              : {}),
           });
         }
       } catch (e) {
@@ -136,6 +147,8 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
         const nextWhy = nxt
           ? buildWhyExperimentExplanation(posterior, nxt, newCompleted)
           : null;
+        // No experiments left but threshold not reached → Unknown / inconclusive.
+        const exhaustedWithoutConfirmation = !nxt && !hasReachedThreshold(posterior, threshold);
         updateSample(id, {
           nextExpId: nxt,
           whyExplanation: nextWhy,
@@ -143,7 +156,14 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
             ? { ...(state.whyExplanations ?? {}), [nextRound]: nextWhy }
             : state.whyExplanations ?? {},
           finished: !nxt,
-          ...(!nxt ? { identifiedElementId: getTopCandidate(posterior).id, dateSolved: new Date().toISOString() } : {}),
+          ...(!nxt
+            ? {
+                identifiedElementId: exhaustedWithoutConfirmation
+                  ? null
+                  : getTopCandidate(posterior).id,
+                dateSolved: new Date().toISOString(),
+              }
+            : {}),
         });
       }
     },
@@ -262,6 +282,7 @@ export default function ActiveInvestigationPage({ params }: { params: Promise<{ 
                 whyExplanations={state.whyExplanations}
                 whatExplanations={state.whatExplanations}
                 finished={state.finished}
+                identifiedElementId={state.identifiedElementId}
                 onSelect={handleOption}
               />
             )}

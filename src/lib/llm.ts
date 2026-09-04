@@ -48,6 +48,7 @@ async function ollamaChat(opts: {
         messages: opts.messages,
         temperature: opts.temperature ?? 0.2,
         max_tokens: opts.maxTokens ?? 600,
+        num_ctx: 8192, // extend context window — default 4096 is too small for vision+prompt
         ...(opts.responseFormat ? { response_format: opts.responseFormat } : {}),
       }),
     });
@@ -112,13 +113,17 @@ export async function classifyWithVisionLLM(opts: {
     temperature: 0.2,
     messages: [
       {
+        role: "system",
+        content: VISION_SYSTEM_PROMPT,
+      },
+      {
         role: "user",
         content: [
+          { type: "image_url", image_url: { url: imageUrl } },
           {
             type: "text",
-            text: VISION_SYSTEM_PROMPT,
+            text: "Identify this element sample and return JSON probabilities.",
           },
-          { type: "image_url", image_url: { url: imageUrl } },
         ],
       },
     ],
@@ -164,26 +169,39 @@ export async function classifyWithVisionLLM(opts: {
 
   const normalized = normalizeDistribution(dist);
 
-  // Safety cap: vision-only confidence should never skip the experimental loop.
-  // If any single element is > 0.92, pull it back and redistribute the surplus
-  // so students always get at least one experiment to verify.
-  const CAP = 0.92;
+  // Hard cap: initial photo-only evidence can NEVER produce a confidence above
+  // 75% for any single element. This ensures at least one physical experiment
+  // is always required before the threshold (typically 85%) can be reached.
+  //
+  // The surplus is redistributed *proportionally* to the other candidates so
+  // their relative likelihood ranking is preserved (not spread evenly).
+  const INITIAL_CAP = 0.75;
   let cappedAny = false;
   let surplus = 0;
   const capped = { ...normalized };
+
   for (const id of ELEMENT_IDS) {
-    if (capped[id] > CAP) {
-      surplus += capped[id] - CAP;
-      capped[id] = CAP;
+    if (capped[id] > INITIAL_CAP) {
+      surplus += capped[id] - INITIAL_CAP;
+      capped[id] = INITIAL_CAP;
       cappedAny = true;
     }
   }
+
   if (cappedAny && surplus > 0) {
-    // Redistribute surplus evenly among the low-confidence candidates
-    const lowIds = ELEMENT_IDS.filter((id) => capped[id] < CAP);
-    if (lowIds.length > 0) {
-      const share = surplus / lowIds.length;
-      for (const id of lowIds) capped[id] += share;
+    // Collect the ids that were NOT capped and their total weight.
+    const otherIds = ELEMENT_IDS.filter((id) => capped[id] < INITIAL_CAP);
+    const otherTotal = otherIds.reduce((s, id) => s + capped[id], 0);
+
+    if (otherTotal > 1e-12) {
+      // Distribute proportionally so relative ranking is preserved.
+      for (const id of otherIds) {
+        capped[id] += surplus * (capped[id] / otherTotal);
+      }
+    } else if (otherIds.length > 0) {
+      // Fallback: uniform spread if all others are ~0.
+      const share = surplus / otherIds.length;
+      for (const id of otherIds) capped[id] += share;
     }
   }
 

@@ -173,10 +173,55 @@ function AnswerBubble({
 
 // ── Final identification card ─────────────────────────────────────
 
-function FinalCard({ distribution }: { distribution: Distribution }) {
+function FinalCard({
+  distribution,
+  identifiedElementId,
+}: {
+  distribution: Distribution;
+  identifiedElementId: string | null;
+}) {
   const top = getTopCandidate(distribution);
+  const isConfirmed = identifiedElementId !== null;
   const label = ELEMENT_LABELS[top.id];
 
+  if (isConfirmed) {
+    // Threshold was reached — confirmed identification.
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.98, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.28 }}
+        className="rounded-2xl border-[3px] border-on-surface bg-white p-5 ink-shadow"
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-wider text-primary">Final identification</p>
+            <h2 className="mt-1 font-bold text-3xl text-primary" style={{ fontFamily: "var(--font-quicksand)" }}>
+              {label}
+            </h2>
+            <p className="mt-1 font-bold text-on-surface-variant" style={{ fontFamily: "var(--font-nunito)" }}>
+              {Math.round(top.confidence * 100)}% confidence
+            </p>
+          </div>
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-[3px] border-on-surface bg-secondary-container text-3xl font-black text-on-secondary-container">
+            {label.charAt(0)}
+          </div>
+        </div>
+        <div className="mt-4 rounded-xl border-2 border-outline-variant bg-primary-fixed/50 p-4">
+          <div className="flex items-center gap-2 font-bold text-on-primary-fixed">
+            <span className="material-symbols-outlined">lightbulb</span>
+            Did you know?
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-on-primary-fixed-variant" style={{ fontFamily: "var(--font-nunito)" }}>
+            {FUN_FACTS[top.id]}
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Experiments exhausted but threshold not reached — result is Unknown.
   return (
     <motion.div
       layout
@@ -187,25 +232,32 @@ function FinalCard({ distribution }: { distribution: Distribution }) {
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-wider text-primary">Final identification</p>
-          <h2 className="mt-1 font-bold text-3xl text-primary" style={{ fontFamily: "var(--font-quicksand)" }}>
-            {label}
+          <p className="text-xs font-extrabold uppercase tracking-wider text-on-surface-variant">Result</p>
+          <h2 className="mt-1 font-bold text-3xl text-on-surface" style={{ fontFamily: "var(--font-quicksand)" }}>
+            Unknown
           </h2>
           <p className="mt-1 font-bold text-on-surface-variant" style={{ fontFamily: "var(--font-nunito)" }}>
-            {Math.round(top.confidence * 100)}% confidence
+            Evidence was inconclusive
           </p>
         </div>
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-[3px] border-on-surface bg-secondary-container text-3xl font-black text-on-secondary-container">
-          {label.charAt(0)}
+        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-[3px] border-on-surface bg-surface-container text-3xl font-black text-on-surface-variant">
+          ?
         </div>
       </div>
-      <div className="mt-4 rounded-xl border-2 border-outline-variant bg-primary-fixed/50 p-4">
-        <div className="flex items-center gap-2 font-bold text-on-primary-fixed">
-          <span className="material-symbols-outlined">lightbulb</span>
-          Did you know?
+      <div className="mt-4 rounded-xl border-2 border-outline-variant bg-surface-container-low p-4">
+        <div className="flex items-center gap-2 font-bold text-on-surface">
+          <span className="material-symbols-outlined">bar_chart</span>
+          Most likely match
         </div>
-        <p className="mt-2 text-sm leading-relaxed text-on-primary-fixed-variant" style={{ fontFamily: "var(--font-nunito)" }}>
-          {FUN_FACTS[top.id]}
+        <p className="mt-1 font-bold text-lg text-on-surface" style={{ fontFamily: "var(--font-quicksand)" }}>
+          {label}{" "}
+          <span className="text-base font-semibold text-on-surface-variant">
+            ({Math.round(top.confidence * 100)}%)
+          </span>
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-on-surface-variant" style={{ fontFamily: "var(--font-nunito)" }}>
+          The available experiments did not produce enough evidence to confirm this identification.
+          A real laboratory instrument (such as XRF or mass spectrometry) would be needed to go further.
         </p>
       </div>
     </motion.div>
@@ -295,6 +347,7 @@ export function InvestigationThread({
   whyExplanations,
   whatExplanations,
   finished,
+  identifiedElementId,
   onSelect,
 }: {
   distribution: Distribution;
@@ -303,6 +356,8 @@ export function InvestigationThread({
   whyExplanations?: Record<number, ExplanationPair>;
   whatExplanations?: Record<number, ExplanationPair>;
   finished: boolean;
+  /** null = investigation ended as Unknown; non-null = confirmed element id */
+  identifiedElementId: string | null;
   onSelect: (optionId: string) => void;
 }) {
   const [showReport, setShowReport] = useState(false);
@@ -420,7 +475,7 @@ export function InvestigationThread({
               )
             )}
           </AnimatePresence>
-          {finished && <FinalCard distribution={distribution} />}
+          {finished && <FinalCard distribution={distribution} identifiedElementId={identifiedElementId} />}
           {showReport && (
             <FullReport
               trail={trail}

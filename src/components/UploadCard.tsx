@@ -76,7 +76,8 @@ export function UploadCard({
           />
         )}
 
-        {!hasImage && (
+        {/* Large centred overlay — shown only before camera starts or image is loaded */}
+        {!hasImage && !usingCamera && (
           <div className="relative z-10 flex flex-col items-center gap-3 bg-surface-container/80 backdrop-blur-sm p-6 sketch-border group-hover:scale-105 transition-transform">
             <div className="w-16 h-16 bg-primary text-on-primary rounded-full flex items-center justify-center border-2 border-on-surface ink-shadow-sm -rotate-3">
               <span className="material-symbols-outlined" style={{ fontSize: 36, fontVariationSettings: "'FILL' 1" }}>
@@ -91,6 +92,15 @@ export function UploadCard({
             </p>
           </div>
         )}
+
+        {/* Small framing hint shown over live camera — bottom corner, unobtrusive */}
+        {!hasImage && usingCamera && (
+          <div className="absolute bottom-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
+            <span className="material-symbols-outlined text-sm leading-none">frame_inspect</span>
+            Framing…
+          </div>
+        )}
+
 
         <div className="absolute -top-4 -left-4 w-16 h-8 bg-tertiary/30 border-2 border-on-surface -rotate-45 z-20" />
         <canvas ref={canvasRef} className="hidden" />
