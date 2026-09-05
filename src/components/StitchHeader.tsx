@@ -19,7 +19,7 @@ export function StitchHeader() {
           className="font-bold text-[28px] md:text-[32px] tracking-tight text-primary -rotate-1"
           style={{ fontFamily: "var(--font-quicksand)" }}
         >
-          AI Element Detective
+          NextTest AI
         </Link>
         <nav className="hidden md:flex gap-6 items-center">
           {nav.map((n) => {

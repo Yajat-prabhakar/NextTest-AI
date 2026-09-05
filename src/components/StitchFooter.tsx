@@ -7,7 +7,7 @@ export function StitchFooter() {
             className="font-semibold text-[18px] text-secondary"
             style={{ fontFamily: "var(--font-quicksand)" }}
           >
-            © 2024 AI Element Detective. Stay Curious, Stay Safe!
+            © 2024 NextTest AI. Stay Curious, Stay Safe!
           </div>
           <nav className="flex gap-6 font-bold text-sm">
             <a href="/how-it-works" className="hover:text-primary transition-colors">

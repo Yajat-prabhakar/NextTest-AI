@@ -15,7 +15,7 @@ const nunito = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "AI Element Detective — Adaptive Lab",
+  title: "NextTest AI — Adaptive Lab",
   description:
     "Analyze the visual clues to deduce the element. Whisperflow lab experience powered by NextTest AI — zero-shot vision + Bayesian experiments.",
 };
